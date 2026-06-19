@@ -10,6 +10,8 @@ const publicNavItems = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
+  { label: 'Search', href: '/search' },
+  { label: 'Create ', href: '/create' },
 ]
 
 const guestNavItems = [

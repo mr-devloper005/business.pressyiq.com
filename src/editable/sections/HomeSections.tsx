@@ -63,7 +63,7 @@ export function EditableHomeHero({ primaryRoute }: HomeSectionProps) {
           Distribute press releases, product launches, and company announcements across media outlets with guided delivery, campaign reporting, and support that starts at $15.
         </p>
         <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-          <Link href="/search" className={`${dc.button.primary} animate-pulse-glow`}>Start Media Distribution <ArrowRight className="h-5 w-5" /></Link>
+          <Link href={mainRoute(primaryRoute)} className={`${dc.button.primary} animate-pulse-glow`}>Start Media Distribution <ArrowRight className="h-5 w-5" /></Link>
           <Link href="/contact" className={dc.button.secondary}>Contact Us</Link>
         </div>
         <div className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm font-semibold text-slate-500">

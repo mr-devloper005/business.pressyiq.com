@@ -36,8 +36,7 @@ export const globalContent = {
       {
         title: 'Account',
         links: [
-          { label: 'Login', href: '/login' },
-          { label: 'Register', href: '/signup' },
+          { label: 'Logout', href: '/' },
         ],
       },
     ],
