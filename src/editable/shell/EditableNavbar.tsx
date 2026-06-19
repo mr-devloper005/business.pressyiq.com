@@ -2,56 +2,90 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, Search, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { useEditableLocalAuthSession } from '@/editable/components/EditableLocalAuthForms'
+
+const publicNavItems = [
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
+]
+
+const guestNavItems = [
+  ...publicNavItems,
+  { label: 'Login', href: '/login' },
+  { label: 'Register', href: '/signup' },
+]
+
+function BrandMark() {
+  return (
+    <span className="flex items-center gap-3">
+      <span className="relative block h-14 w-20 overflow-hidden rounded-xl sm:w-24" aria-hidden="true">
+        <img src="/favicon.png" alt="Pressyiq Logo" className="h-full w-full object-contain" />
+      </span>
+      <span className="text-lg font-black tracking-[-0.035em] text-slate-950 sm:text-2xl">
+        business.<span className="text-[var(--slot4-accent)]">Pressyiq</span>
+      </span>
+    </span>
+  )
+}
 
 export function EditableNavbar() {
   const [open, setOpen] = useState(false)
   const { session, logout } = useEditableLocalAuthSession()
+  const navItems = session ? publicNavItems : guestNavItems
+
+  const handleLogout = () => {
+    logout()
+    setOpen(false)
+  }
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--slot4-surface-bg)] text-black shadow-[0_1px_0_rgba(0,0,0,.18)]">
-      <div className="mx-auto grid min-h-[88px] max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6 lg:px-10">
-        <div className="flex items-center gap-4">
-          <button type="button" onClick={() => setOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center border border-black/25 lg:hidden" aria-label="Toggle navigation">
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-
-        <Link href="/" className="editorial-brand max-w-[54vw] truncate text-center text-3xl font-black text-[var(--slot4-accent)] sm:text-5xl">
-          {SITE_CONFIG.name}
+    <header className="sticky top-0 z-50 bg-transparent px-3 py-3 sm:px-5">
+      <nav className="mx-auto flex min-h-[70px] max-w-[1216px] items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white/95 px-4 shadow-[0_12px_34px_rgba(24,42,64,.09)] backdrop-blur sm:px-6">
+        <Link href="/" className="shrink-0" aria-label={`${SITE_CONFIG.name} home`}>
+          <BrandMark />
+          
         </Link>
 
-        <div className="flex items-center justify-end gap-4">
+        <div className="hidden items-center gap-8 lg:flex">
+          {navItems.map((item) => (
+            <Link key={item.label} href={item.href} className="text-sm font-extrabold text-slate-700 transition hover:text-[var(--slot4-accent)]">
+              {item.label}
+            </Link>
+          ))}
           {session ? (
-            <>
-              <Link href="/create" className="hidden text-xs font-black uppercase tracking-[.12em] sm:block">Create</Link>
-              <button type="button" onClick={logout} className="hidden text-xs font-black uppercase tracking-[.12em] sm:block">Logout</button>
-            </>
-          ) : <Link href="/login" className="hidden text-xs font-black uppercase tracking-[.12em] sm:block">Log in</Link>}
-          <Link href={session ? '/create' : '/signup'} className="bg-[var(--slot4-accent)] px-4 py-3 text-[10px] font-black uppercase tracking-[.14em] text-white sm:px-6">
-            {session ? 'Publish' : 'Subscribe'}
-          </Link>
+            <div className="flex items-center gap-4">
+              <span className="max-w-44 truncate rounded-full bg-blue-50 px-4 py-2 text-sm font-black text-[var(--slot4-accent)]">{session.name}</span>
+              <button type="button" onClick={handleLogout} className="text-sm font-extrabold text-slate-700 transition hover:text-[var(--slot4-accent)]">
+                Logout
+              </button>
+            </div>
+          ) : null}
         </div>
-      </div>
 
-      <div className="bg-black text-white">
-        <div className="mx-auto flex min-h-[54px] max-w-[1440px] items-center px-4 sm:px-6 lg:px-10">
-          <Link href="/" className="mr-6 hidden items-center gap-2 text-xs font-black uppercase tracking-[.16em] lg:flex"><Menu className="h-4 w-4" /> Menu</Link>
-          <form action="/search" className="ml-auto flex min-w-0 flex-1 items-center border-l border-white/20 lg:max-w-[270px] lg:flex-none">
-            <Search className="ml-4 h-4 w-4 text-white/65" />
-            <input name="q" type="search" placeholder="Search the archive" className="min-w-0 flex-1 bg-transparent px-3 py-4 text-xs font-bold outline-none placeholder:text-white/45" />
-          </form>
-        </div>
-      </div>
+        <button type="button" onClick={() => setOpen((value) => !value)} className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-800 lg:hidden" aria-label="Toggle navigation">
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </nav>
 
       {open ? (
-        <div className="border-t border-black/15 bg-[var(--slot4-surface-bg)] px-4 py-4 lg:hidden">
-          <div className="grid gap-px bg-black/15">
-            {[{ label: 'Home', href: '/' }, { label: 'Archive', href: '/search' }, { label: 'Contact', href: '/contact' }, ...(session ? [{ label: 'Create', href: '/create' }] : [{ label: 'Login', href: '/login' }, { label: 'Sign up', href: '/signup' }])].map((item) => (
-              <Link key={`${item.label}-${item.href}`} href={item.href} onClick={() => setOpen(false)} className="bg-white px-4 py-3 text-sm font-black uppercase tracking-[.1em]">{item.label}</Link>
+        <div className="mx-auto mt-3 max-w-[1216px] rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(24,42,64,.13)] lg:hidden">
+          <div className="grid gap-1">
+            {navItems.map((item) => (
+              <Link key={item.label} href={item.href} onClick={() => setOpen(false)} className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50">
+                {item.label}
+              </Link>
             ))}
+            {session ? (
+              <div className="mt-2 border-t border-slate-100 pt-3">
+                <p className="rounded-xl bg-blue-50 px-3 py-3 text-sm font-black text-[var(--slot4-accent)]">{session.name}</p>
+                <button type="button" onClick={handleLogout} className="mt-1 w-full rounded-xl px-3 py-3 text-left text-sm font-extrabold text-slate-700 hover:bg-slate-50">
+                  Logout
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
