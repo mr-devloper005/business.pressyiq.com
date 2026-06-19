@@ -9,7 +9,7 @@ function PulseBlock({ className }: { className?: string }) {
   return <div className={cn('animate-pulse rounded-2xl bg-current/10', className)} />
 }
 
-export function PageLoadingState({ label = 'Loading page', className }: LoadingStateProps) {
+export function PageLoadingState({ label = 'Loading media page', className }: LoadingStateProps) {
   return (
     <div className={cn('mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8', className)} aria-live="polite" aria-busy="true">
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-current/50">{label}</p>
@@ -43,7 +43,7 @@ export function CardGridLoadingState({ count = 6, className }: LoadingStateProps
   )
 }
 
-export function DetailLoadingState({ label = 'Loading detail', className }: LoadingStateProps) {
+export function DetailLoadingState({ label = 'Loading release detail', className }: LoadingStateProps) {
   return (
     <div className={cn('mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[0.8fr_1.2fr]', className)} aria-live="polite" aria-busy="true">
       <PulseBlock className="h-80 w-full rounded-[2rem]" />

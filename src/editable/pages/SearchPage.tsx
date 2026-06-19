@@ -9,6 +9,7 @@ import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
 import type { SitePost } from '@/lib/site-connector'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { pagesContent } from '@/editable/content/pages.content'
+import { getEditableExcerpt, getEditableTitle } from '@/editable/cards/PostCards'
 
 export const revalidate = 3
 
@@ -23,14 +24,14 @@ export async function generateMetadata(): Promise<Metadata> {
 const stripHtml = (value: string) => value.replace(/<[^>]*>/g, ' ')
 const compactText = (value: unknown) => typeof value === 'string' ? stripHtml(value).replace(/\s+/g, ' ').trim().toLowerCase() : ''
 const getContent = (post: SitePost) => post.content && typeof post.content === 'object' ? post.content as Record<string, unknown> : {}
+const compactRaw = (value: unknown) => typeof value === 'string' ? value.trim() : ''
 const getImage = (post: SitePost) => {
   const content = getContent(post)
   const media = Array.isArray(post.media) ? post.media.find((item) => typeof item?.url === 'string')?.url : ''
   const images = Array.isArray(content.images) ? content.images.find((item) => typeof item === 'string') as string | undefined : ''
   return media || compactRaw(content.featuredImage) || compactRaw(content.image) || compactRaw(content.thumbnail) || images || ''
 }
-const compactRaw = (value: unknown) => typeof value === 'string' ? value.trim() : ''
-const summaryOf = (post: SitePost) => post.summary || compactRaw(getContent(post).description) || compactRaw(getContent(post).excerpt) || ''
+const summaryOf = (post: SitePost) => getEditableExcerpt(post, 170)
 
 const matches = (post: SitePost, query: string, category: string, task: string) => {
   const content = getContent(post)
@@ -51,23 +52,23 @@ function SearchResultCard({ post, index }: { post: SitePost; index: number }) {
   const href = task ? buildPostUrl(task, post.slug) : `/article/${post.slug}`
   const image = getImage(post)
   const summary = summaryOf(post)
-  const taskLabel = SITE_CONFIG.tasks.find((item) => item.key === task)?.label || 'Post'
+  const title = getEditableTitle(post)
+  const taskLabel = SITE_CONFIG.tasks.find((item) => item.key === task)?.label || 'Media update'
   const strong = index % 5 === 0
 
   return (
-    <Link href={href} className={`group block overflow-hidden border-b border-r border-black bg-white ${strong ? 'md:col-span-2' : ''}`}>
+    <Link href={href} className={`group overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_12px_34px_rgba(24,42,64,.08)] transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(24,42,64,.14)] ${strong ? 'md:col-span-2' : ''}`}>
       {image ? (
-        <div className={`relative overflow-hidden bg-black ${strong ? 'aspect-[16/7]' : 'aspect-[16/10]'}`}>
-          <img src={image} alt="" className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          <span className="absolute left-4 top-4 bg-[#c92f2f] px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white">{taskLabel}</span>
+        <div className={`relative overflow-hidden bg-slate-100 ${strong ? 'aspect-[16/7]' : 'aspect-[16/10]'}`}>
+          <img src={image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+          <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[var(--slot4-accent)]">{taskLabel}</span>
         </div>
       ) : null}
       <div className="p-5 sm:p-6">
-        {!image ? <span className="bg-[#c92f2f] px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white">{taskLabel}</span> : null}
-        <h2 className="editorial-serif mt-4 line-clamp-3 text-2xl font-black leading-[1.03] tracking-[-0.035em] text-black">{post.title}</h2>
-        {summary ? <p className="mt-4 line-clamp-3 text-sm font-semibold leading-7 text-[var(--editable-page-text,#211713)]/65">{summary}</p> : null}
-        <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] opacity-60 group-hover:opacity-100">Open result <ArrowRight className="h-4 w-4" /></span>
+        {!image ? <span className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[var(--slot4-accent)]">{taskLabel}</span> : null}
+        <h2 className="mt-4 line-clamp-3 text-2xl font-black leading-tight tracking-[-0.035em] text-slate-950">{title}</h2>
+        <p className="mt-4 line-clamp-3 text-sm font-medium leading-7 text-slate-600">{summary}</p>
+        <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500 group-hover:text-[var(--slot4-accent)]">Open result <ArrowRight className="h-4 w-4" /></span>
       </div>
     </Link>
   )
@@ -87,52 +88,53 @@ export default async function SearchPage({ searchParams }: { searchParams?: Prom
 
   return (
     <EditableSiteShell>
-      <main className="min-h-screen bg-[#f7f4ef] text-black">
-        <section className="mx-auto max-w-[var(--editable-container)] border-x border-black bg-[#f7f4ef]">
-          <div className="grid border-b border-black bg-white md:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <div className="h-full bg-[#c92f2f] p-7 text-white sm:p-10 lg:p-14">
-                <p className="text-xs font-black uppercase tracking-[0.28em]">{pagesContent.search.hero.badge}</p>
-                <h1 className="editorial-brand mt-5 text-6xl font-black leading-[0.9] tracking-[-0.055em] sm:text-8xl">{pagesContent.search.hero.title}</h1>
-                <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-white/75">{pagesContent.search.hero.description}</p>
-              </div>
-            </div>
-            <form action="/search" className="self-center p-6 sm:p-10 lg:p-14">
-              <input type="hidden" name="master" value="1" />
-              <label className="flex items-center gap-3 border border-black bg-white px-4 py-3">
-                <Search className="h-5 w-5 opacity-45" />
-                <input name="q" defaultValue={query} placeholder={pagesContent.search.hero.placeholder} className="min-w-0 flex-1 bg-transparent text-base font-bold outline-none placeholder:text-current/35" />
-              </label>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="flex items-center gap-2 border border-black bg-white px-4 py-3">
-                  <Filter className="h-4 w-4 opacity-45" />
-                  <input name="category" defaultValue={category} placeholder="Category" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:text-current/35" />
-                </label>
-                <select name="task" defaultValue={task} className="border border-black bg-white px-4 py-3 text-sm font-black outline-none">
-                  <option value="">All content types</option>
-                  {enabledTasks.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
-                </select>
-              </div>
-              <button className="mt-3 inline-flex h-12 w-full items-center justify-center border border-black bg-black px-6 text-xs font-black uppercase tracking-[0.18em] text-white transition hover:bg-[#c92f2f]" type="submit">Search</button>
-            </form>
+      <main className="min-h-screen bg-[linear-gradient(180deg,#fff_0%,#f7fbff_52%,#fff_100%)] text-slate-950">
+        <section className="relative overflow-hidden border-b border-slate-100 py-14 sm:py-20">
+          <div className="pointer-events-none absolute -left-28 top-12 h-80 w-80 rounded-full bg-blue-200/35 blur-3xl" />
+          <div className="pointer-events-none absolute -right-28 top-40 h-96 w-96 rounded-full bg-purple-200/20 blur-3xl" />
+          <div className="relative mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+            <p className="inline-flex rounded-full border border-blue-200 bg-white px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-[var(--slot4-accent)]">{pagesContent.search.hero.badge}</p>
+            <h1 className="mt-7 max-w-5xl text-5xl font-black leading-[0.96] tracking-[-0.055em] sm:text-7xl">{pagesContent.search.hero.title}</h1>
+            <p className="mt-6 max-w-3xl text-xl font-semibold leading-9 text-slate-600">{pagesContent.search.hero.description}</p>
           </div>
+        </section>
 
-          <div className="flex flex-wrap items-end justify-between gap-4 border-b-4 border-black px-4 py-8 sm:px-6 lg:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] opacity-50">{results.length} results</p>
-              <h2 className="editorial-brand mt-2 text-4xl font-black tracking-[-0.04em]">{query ? `Results for “${query}”` : pagesContent.search.resultsTitle}</h2>
+        <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+          <form action="/search" className="rounded-[1.7rem] border border-slate-200 bg-white p-5 shadow-[0_20px_56px_rgba(24,42,64,.1)] sm:p-7">
+            <input type="hidden" name="master" value="1" />
+            <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <Search className="h-5 w-5 text-slate-400" />
+              <input name="q" defaultValue={query} placeholder={pagesContent.search.hero.placeholder} className="min-w-0 flex-1 bg-transparent text-base font-bold outline-none placeholder:text-slate-400" />
+            </label>
+            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+              <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <Filter className="h-4 w-4 text-slate-400" />
+                <input name="category" defaultValue={category} placeholder="Category" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:text-slate-400" />
+              </label>
+              <select name="task" defaultValue={task} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-black outline-none">
+                <option value="">All content types</option>
+                {enabledTasks.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
+              </select>
+              <button className="inline-flex h-12 items-center justify-center rounded-xl bg-[var(--slot4-accent)] px-8 text-xs font-black uppercase tracking-[0.14em] text-white shadow-[0_12px_28px_rgba(43,125,183,.22)] transition hover:bg-[#226897]" type="submit">Search</button>
             </div>
-            <Link href="/article" className="inline-flex items-center gap-2 border border-black bg-white px-5 py-3 text-xs font-black uppercase">Browse latest <ArrowRight className="h-4 w-4" /></Link>
+          </form>
+
+          <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{results.length} results</p>
+              <h2 className="mt-2 text-4xl font-black tracking-[-0.04em]">{query ? `Results for "${query}"` : pagesContent.search.resultsTitle}</h2>
+            </div>
+            <Link href="/media-distribution" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-slate-800 shadow-sm">Browse releases <ArrowRight className="h-4 w-4 text-[var(--slot4-accent)]" /></Link>
           </div>
 
           {results.length ? (
-            <div className="grid border-l border-t border-black md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {results.map((post, index) => <SearchResultCard key={post.id || post.slug} post={post} index={index} />)}
             </div>
           ) : (
-            <div className="m-8 border border-dashed border-black bg-white p-10 text-center">
-              <p className="text-2xl font-black tracking-[-0.04em]">No matching posts found.</p>
-              <p className="mt-3 text-sm font-semibold opacity-60">Try a different keyword, task type, or category.</p>
+            <div className="mt-8 rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
+              <p className="text-2xl font-black tracking-[-0.04em]">No matching media updates found.</p>
+              <p className="mt-3 text-sm font-semibold text-slate-500">Try a different keyword, task type, or distribution category.</p>
             </div>
           )}
         </section>
