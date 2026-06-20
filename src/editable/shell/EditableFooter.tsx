@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { CircleCheck } from 'lucide-react'
 import { SITE_CONFIG } from '@/lib/site-config'
+import { useEditableLocalAuthSession } from '@/editable/components/EditableLocalAuthForms'
 
 function FooterBrand() {
   const name = SITE_CONFIG.name.replace(/^https?:\/\//, '').replace(/^www\./, '')
@@ -17,10 +18,18 @@ function FooterBrand() {
 
 export function EditableFooter() {
   const year = new Date().getFullYear()
-  const links = [
+  const { session, logout } = useEditableLocalAuthSession()
+
+  const handleLogout = () => {
+    logout()
+  }
+
+  const publicLinks = [
     ['Home', '/'],
     ['About', '/about'],
     ['Contact', '/contact'],
+  ]
+  const guestLinks = [
     ['Login', '/login'],
     ['Register', '/signup'],
   ]
@@ -37,9 +46,18 @@ export function EditableFooter() {
           <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6">
             <h3 className="text-lg font-black">Site Links</h3>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {links.map(([label, href]) => (
+              {publicLinks.map(([label, href]) => (
                 <Link key={`${label}-${href}`} href={href} className="text-base font-semibold text-white/58 transition hover:text-white">{label}</Link>
               ))}
+              {session ? (
+                <button type="button" onClick={handleLogout} className="text-left text-base font-semibold text-white/58 transition hover:text-white">
+                  Logout
+                </button>
+              ) : (
+                guestLinks.map(([label, href]) => (
+                  <Link key={`${label}-${href}`} href={href} className="text-base font-semibold text-white/58 transition hover:text-white">{label}</Link>
+                ))
+              )}
             </div>
           </div>
         </div>
