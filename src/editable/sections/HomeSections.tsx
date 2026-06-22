@@ -49,7 +49,7 @@ function mainRoute(primaryRoute: string) {
   return primaryRoute || '/media-distribution'
 }
 
-export function EditableHomeHero({ primaryRoute }: HomeSectionProps) {
+export function EditableHomeHero({ primaryRoute: _primaryRoute }: HomeSectionProps) {
   return (
     <section className="relative overflow-hidden pb-10 pt-16 sm:pt-20 lg:pb-0">
       <div className="pointer-events-none absolute -left-40 top-24 h-96 w-96 rounded-full bg-blue-200/35 blur-3xl" />
@@ -63,7 +63,7 @@ export function EditableHomeHero({ primaryRoute }: HomeSectionProps) {
           Distribute press releases, product launches, and company announcements across media outlets with guided delivery, campaign reporting, and support that starts at $15.
         </p>
         <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-          <Link href={mainRoute(primaryRoute)} className={`${dc.button.primary} animate-pulse-glow`}>Start Media Distribution <ArrowRight className="h-5 w-5" /></Link>
+          <Link href="/about" className={`${dc.button.primary} animate-pulse-glow`}>About Us <ArrowRight className="h-5 w-5" /></Link>
           <Link href="/contact" className={dc.button.secondary}>Contact Us</Link>
         </div>
         <div className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm font-semibold text-slate-500">
