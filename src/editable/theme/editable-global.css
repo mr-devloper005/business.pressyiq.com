@@ -15,8 +15,8 @@ body {
 }
 
 * { box-sizing: border-box; }
-*::selection { background: var(--press-blue) !important; color: #fff !important; }
-*::-moz-selection { background: var(--press-blue) !important; color: #fff !important; }
+*::selection { background: #ffe66d !important; color: #07111f !important; }
+*::-moz-selection { background: #ffe66d !important; color: #07111f !important; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: #f4f8fc; }

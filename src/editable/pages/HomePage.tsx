@@ -2,9 +2,7 @@ import type { Metadata } from 'next'
 import { SchemaJsonLd } from '@/components/seo/schema-jsonld'
 import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
 import { buildPageMetadata } from '@/lib/seo'
-import { fetchHomeTaskFeed, fetchHomeTimeSections, type HomeTimeSection } from '@/lib/task-data'
 import { pagesContent } from '@/editable/content/pages.content'
-import type { SitePost } from '@/lib/site-connector'
 import { EditableHomeCta, EditableHomeHero, EditableMagazineSplit, EditableStoryRail, EditableTimeCollections } from '@/editable/sections/HomeSections'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 
@@ -22,18 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
   })
 }
 
-type TaskFeedItem = { task: (typeof SITE_CONFIG.tasks)[number]; posts: SitePost[] }
-
-function uniquePosts(posts: SitePost[]) {
-  return Array.from(new Map(posts.map((post) => [post.slug || post.id || post.title, post])).values())
-}
-
 export default async function HomePage() {
   const primaryTask = (SITE_CONFIG.tasks.find((task) => task.enabled)?.key || 'article') as TaskKey
   const primaryRoute = SITE_CONFIG.taskViews[primaryTask] || `/${primaryTask}`
-  const taskFeed: TaskFeedItem[] = await fetchHomeTaskFeed(12, { timeoutMs: 2500 })
-  const primaryPosts = uniquePosts(taskFeed.find(({ task }) => task.key === primaryTask)?.posts || taskFeed.flatMap(({ posts }) => posts)).slice(0, 24)
-  const timeSections: HomeTimeSection[] = await fetchHomeTimeSections(primaryTask, { limit: 8, timeoutMs: 2500 })
   const baseUrl = SITE_CONFIG.baseUrl.replace(/\/$/, '')
 
   return (
@@ -52,10 +41,10 @@ export default async function HomePage() {
           },
         }}
       />
-      <EditableHomeHero primaryTask={primaryTask} primaryRoute={primaryRoute} posts={primaryPosts} timeSections={timeSections} />
-      <EditableStoryRail primaryTask={primaryTask} primaryRoute={primaryRoute} posts={primaryPosts} timeSections={timeSections} />
-      <EditableMagazineSplit primaryTask={primaryTask} primaryRoute={primaryRoute} posts={primaryPosts} timeSections={timeSections} />
-      <EditableTimeCollections primaryTask={primaryTask} primaryRoute={primaryRoute} posts={primaryPosts} timeSections={timeSections} />
+      <EditableHomeHero primaryTask={primaryTask} primaryRoute={primaryRoute} posts={[]} timeSections={[]} />
+      <EditableStoryRail primaryTask={primaryTask} primaryRoute={primaryRoute} posts={[]} timeSections={[]} />
+      <EditableMagazineSplit primaryTask={primaryTask} primaryRoute={primaryRoute} posts={[]} timeSections={[]} />
+      <EditableTimeCollections primaryTask={primaryTask} primaryRoute={primaryRoute} posts={[]} timeSections={[]} />
       <EditableHomeCta />
       </main>
     </EditableSiteShell>

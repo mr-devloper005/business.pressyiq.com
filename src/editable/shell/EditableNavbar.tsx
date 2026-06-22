@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { useEditableLocalAuthSession } from '@/editable/components/EditableLocalAuthForms'
+
+const SESSION_KEY = 'slot4:local-auth-session'
 
 const publicNavItems = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
   { label: 'Search', href: '/search' },
-  { label: 'Create ', href: '/create' },
 ]
 
 const guestNavItems = [
@@ -19,6 +20,21 @@ const guestNavItems = [
   { label: 'Login', href: '/login' },
   { label: 'Register', href: '/signup' },
 ]
+
+const memberNavItems = [
+  ...publicNavItems,
+  { label: 'Create', href: '/create' },
+]
+
+function readStoredSession() {
+  if (typeof window === 'undefined') return null
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(SESSION_KEY) || 'null')
+    return parsed && typeof parsed.email === 'string' ? parsed as { name: string; email: string } : null
+  } catch {
+    return null
+  }
+}
 
 function BrandMark() {
   return (
@@ -36,10 +52,24 @@ function BrandMark() {
 export function EditableNavbar() {
   const [open, setOpen] = useState(false)
   const { session, logout } = useEditableLocalAuthSession()
-  const navItems = session ? publicNavItems : guestNavItems
+  const [storedSession, setStoredSession] = useState<{ name: string; email: string } | null>(null)
+  const activeSession = session || storedSession
+  const navItems = activeSession ? memberNavItems : guestNavItems
+
+  useEffect(() => {
+    const syncSession = () => setStoredSession(readStoredSession())
+    syncSession()
+    window.addEventListener('slot4-auth-change', syncSession)
+    window.addEventListener('storage', syncSession)
+    return () => {
+      window.removeEventListener('slot4-auth-change', syncSession)
+      window.removeEventListener('storage', syncSession)
+    }
+  }, [])
 
   const handleLogout = () => {
     logout()
+    setStoredSession(null)
     setOpen(false)
   }
 
@@ -57,9 +87,9 @@ export function EditableNavbar() {
               {item.label}
             </Link>
           ))}
-          {session ? (
+          {activeSession ? (
             <div className="flex items-center gap-4">
-              <span className="max-w-44 truncate rounded-full bg-blue-50 px-4 py-2 text-sm font-black text-[var(--slot4-accent)]">{session.name}</span>
+              <span className="max-w-44 truncate rounded-full bg-blue-50 px-4 py-2 text-sm font-black text-[var(--slot4-accent)]">{activeSession.name}</span>
               <button type="button" onClick={handleLogout} className="text-sm font-extrabold text-slate-700 transition hover:text-[var(--slot4-accent)]">
                 Logout
               </button>
@@ -80,9 +110,9 @@ export function EditableNavbar() {
                 {item.label}
               </Link>
             ))}
-            {session ? (
+            {activeSession ? (
               <div className="mt-2 border-t border-slate-100 pt-3">
-                <p className="rounded-xl bg-blue-50 px-3 py-3 text-sm font-black text-[var(--slot4-accent)]">{session.name}</p>
+                <p className="rounded-xl bg-blue-50 px-3 py-3 text-sm font-black text-[var(--slot4-accent)]">{activeSession.name}</p>
                 <button type="button" onClick={handleLogout} className="mt-1 w-full rounded-xl px-3 py-3 text-left text-sm font-extrabold text-slate-700 hover:bg-slate-50">
                   Logout
                 </button>
